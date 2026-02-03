@@ -1,43 +1,69 @@
-export LATEST_VLLM_VERSION=<latest_container_version>
+# vLLM on DGX Spark
 
-# example
-# export LATEST_VLLM_VERSION=25.11-py3
+## Quick Start with Python Script (Recommended)
+
+Use the interactive Python script to generate a Dockerfile for your chosen model:
 
 ```bash
+python3 generate_vllm_dockerfile.py
+```
+
+The script will:
+1. Display all supported DGX Spark models
+2. Prompt you to select a model
+3. Generate a `Dockerfile` configured for that model
+4. Provide build and run instructions
+
+After running the script, build and run your container:
+
+```bash
+docker build -t vllm-server .
+docker run -it --gpus all -p 8000:8000 vllm-server
+```
+
+## Manual Setup
+
+### Pull the vLLM Container
+
+```bash
+export LATEST_VLLM_VERSION=25.11-py3
 docker pull nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION}
 ```
 
-# For Nemotron3-Nano model support, please use release version 25.12.post1-py3
+For Nemotron3-Nano model support, use version `25.12.post1-py3`:
 
 ```bash
 docker pull nvcr.io/nvidia/vllm:25.12.post1-py3
 ```
 
-# Run vLLM
+### Run vLLM
+
 ```bash
 docker run -it --gpus all -p 8000:8000 \
-nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION} \
-vllm serve "Qwen/Qwen2.5-Math-1.5B-Instruct"
+    nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION} \
+    vllm serve "Qwen/Qwen2.5-Math-1.5B-Instruct"
 ```
 
-# Test the server
+### Test the Server
+
 ```bash
 curl http://localhost:8000/v1/chat/completions \
--H "Content-Type: application/json" \
--d '{
-    "model": "Qwen/Qwen2.5-Math-1.5B-Instruct",
-    "messages": [{"role": "user", "content": "12*17"}],
-    "max_tokens": 500
-}'
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+        "messages": [{"role": "user", "content": "12*17"}],
+        "max_tokens": 500
+    }'
 ```
 
-# Cleanup and roll back
+### Cleanup
+
 ```bash
 docker rm $(docker ps -aq --filter ancestor=nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION})
-docker rmi nvcr.io/nvidia/vllm
+docker rmi nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION}
 ```
 
-# DGX Spark Supported Models
+## DGX Spark Supported Models
 | Model                         | Quantization | Support Status | HF Handle                                           |
 |------------------------------|--------------|----------------|-----------------------------------------------------|
 | GPT-OSS-20B                  | MXFP4        | ✅             | openai/gpt-oss-20b                                  |
