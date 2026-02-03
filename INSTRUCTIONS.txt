@@ -1,0 +1,33 @@
+Model: Nemotron3-Nano (FP8)
+HuggingFace Handle: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
+vLLM Version: 25.12.post1-py3
+
+================================================================================
+                        BUILD AND RUN INSTRUCTIONS
+================================================================================
+
+1. Build the Docker image:
+   docker build -t vllm-server .
+
+2. Run the container:
+   docker run -it --gpus all -p 8000:8000 vllm-server
+
+   Or run directly without building (using the base image):
+   docker run -it --gpus all -p 8000:8000 \
+       nvcr.io/nvidia/vllm:25.12.post1-py3 \
+       vllm serve "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8"
+
+3. Test the server:
+   curl http://localhost:8000/v1/chat/completions \
+       -H "Content-Type: application/json" \
+       -d '{
+           "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8",
+           "messages": [{"role": "user", "content": "Hello!"}],
+           "max_tokens": 500
+       }'
+
+4. Cleanup:
+   docker rm $(docker ps -aq --filter ancestor=vllm-server)
+   docker rmi vllm-server
+
+================================================================================
